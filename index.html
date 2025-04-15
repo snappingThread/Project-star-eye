@@ -11,23 +11,4 @@
   <button id="fetch-data">Get Satellite Data</button>
   <pre id="output"></pre>
 </body>
-<head>
-  <script src="https://cesium.com/downloads/cesiumjs/releases/1.94/Build/Cesium/Cesium.js"></script>
-  <link href="https://cesium.com/downloads/cesiumjs/releases/1.94/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-</head>
-<body>
-  <div id="cesiumContainer" style="width: 100%; height: 500px;"></div>
-  <script>
-    const viewer = new Cesium.Viewer('cesiumContainer', {
-      terrainProvider: Cesium.createWorldTerrain()
-    });
-
-    // Example: Add a satellite orbit
-    viewer.entities.add({
-      name: 'ISS (Zarya)',
-      position: Cesium.Cartesian3.fromDegrees(-75, 40, 400000),
-      point: { pixelSize: 10, color: Cesium.Color.RED }
-    });
-  </script>
-</body>
 </html>
