@@ -3,69 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Star-Eye: Real-Time Satellite Tracker</title>
+  <title>Star-Eye: Satellite Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    #satelliteData {
+      margin-top: 20px;
+    }
+    .satellite {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
   <h1>Star-Eye: Real-Time Satellite Tracker</h1>
   <div id="satelliteData">Loading satellite data...</div>
-  <script>
-    // Fetch satellite position data from N2YO API
-    async function fetchSatelliteData(noradId, observerLat, observerLng, observerAlt, seconds) {
-      const apiKey = "PNYRJG-6L9LNC-TKCCM5-5GDE";
-      const url = `https://api.n2yo.com/rest/v1/satellite/positions/${noradId}/${observerLat}/${observerLng}/${observerAlt}/${seconds}/&apiKey=${apiKey}`;
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Error fetching satellite data: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error(error);
-        document.getElementById("satelliteData").textContent = "Failed to load satellite data.";
-      }
-    }
-
-    // Display the satellite data
-    function displaySatelliteData(data) {
-      const container = document.getElementById("satelliteData");
-      container.innerHTML = ""; // Clear previous content
-
-      const satelliteName = document.createElement("h2");
-      satelliteName.textContent = `Satellite: ${data.info.satname}`;
-
-      const positions = document.createElement("ul");
-      data.positions.forEach((position, index) => {
-        const listItem = document.createElement("li");
-        listItem.textContent = `Position ${index + 1}: Lat: ${position.satlatitude}, Lng: ${position.satlongitude}, Alt: ${position.sataltitude} km`;
-        positions.appendChild(listItem);
-      });
-
-      container.appendChild(satelliteName);
-      container.appendChild(positions);
-    }
-
-    // Main function to fetch and display data
-    async function updateSatelliteData() {
-      const noradId = 25544; // ISS NORAD ID
-      const observerLat = 0; // Equator latitude
-      const observerLng = 0; // Prime Meridian longitude
-      const observerAlt = 0; // Sea level
-      const seconds = 10; // Next 10 seconds
-
-      const data = await fetchSatelliteData(noradId, observerLat, observerLng, observerAlt, seconds);
-      if (data) {
-        displaySatelliteData(data);
-      }
-    }
-
-    // Update data every ~3.6 seconds for 999 requests/hour
-    const interval = (60 * 60 * 1000) / 999; // Time between requests in milliseconds
-    setInterval(updateSatelliteData, interval);
-
-    // Initialize the first update
-    updateSatelliteData();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
