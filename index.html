@@ -3,15 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Star-Eye: Satellite Tracker</title>
-  <!-- Include the satellite.js library -->
-  <script src="https://cdn.jsdelivr.net/npm/satellite.js@2.0.0/dist/satellite.js"></script>
-  <script src="script.js" defer></script>
+  <title>Star-Eye</title>
+  <script src="script.js" type="module" defer></script>
+  <style>
+    pre {
+      font-family: monospace;
+      line-height: 1.2;
+      background: black;
+      color: white;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .container {
+      display: flex;
+    }
+    .data, .map {
+      margin-right: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Star-Eye: Satellite Tracker</h1>
-  <button id="fetch-data">Fetch Satellite Data</button>
-  <pre id="satellite-data"></pre>
+  <h1>Star-Eye: Near-Earth Satellites</h1>
+  <div class="container">
+    <pre class="data" id="satellite-data"></pre>
+    <pre class="map" id="ascii-map"></pre>
+  </div>
 </body>
 </html>
-
