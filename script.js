@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Automatically recalculate satellite data every 500ms
   setInterval(async () => {
     output.textContent = 'Recalculating satellite positions...'; // Optional: Show recalculation message
+    console.log('Recalculating satellite positions...');
     await updateSatellitePositions(); // Recalculate the positions every 500ms
   }, 500); // 500 milliseconds interval
 });
@@ -47,6 +48,9 @@ async function fetchSatelliteData() {
     // Parse the TLE data into satellite objects
     satellites = parseTLEData(tleData);
 
+    // Log the satellites to ensure they are being populated
+    console.log('Satellites:', satellites);
+
     // Initially calculate and display positions
     await updateSatellitePositions();
   } catch (error) {
@@ -74,10 +78,15 @@ function parseTLEData(tleText) {
 async function updateSatellitePositions() {
   const output = document.getElementById('output');
   const now = new Date();
+  console.log('Updating satellite positions at', now);
+
   const positions = satellites.map((sat) => {
     const position = calculatePosition(sat, now);
     return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
   });
+
+  // Log positions to ensure the data is being calculated
+  console.log('Satellite Positions:', positions);
 
   // Display updated positions
   output.textContent = positions.join('\n');
