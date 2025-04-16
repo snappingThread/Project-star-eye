@@ -1,89 +1,106 @@
-// Fetch data from Celestrak's satellite data URL
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.module.js";
+
+// Fetch data from Celestrak
 const url = "https://www.celestrak.com/NORAD/elements/stations.txt";
 
-// Function to fetch and display satellite data
 async function fetchSatelliteData() {
   try {
     const response = await fetch(url);
     const data = await response.text();
-
     const satellites = parseTLEData(data);
 
     displaySatelliteData(satellites);
+    initThreeJS(satellites);
   } catch (error) {
     console.error("Error fetching data: ", error);
   }
 }
 
-// Function to parse TLE data into an array of satellite objects
 function parseTLEData(data) {
   const lines = data.split("\n").filter(line => line.trim() !== "");
   const satellites = [];
-
   for (let i = 0; i < lines.length; i += 3) {
     const name = lines[i];
     const tle1 = lines[i + 1];
     const tle2 = lines[i + 2];
-    
-    satellites.push({
-      name,
-      tle1,
-      tle2
-    });
+    satellites.push({ name, tle1, tle2 });
   }
-
   return satellites;
 }
 
-// Function to calculate position from TLE data
-function getSatellitePosition(tle1, tle2) {
-  const satrec = satellite.twoline2satrec(tle1, tle2);
-  const now = new Date();
-
-  const positionAndVelocity = satellite.propagate(satrec, now);
-  if (positionAndVelocity.position === false) return null;
-
-  const positionEci = positionAndVelocity.position;
-  const gmst = satellite.gstime(now);
-  const positionGd = satellite.eciToGeodetic(positionEci, gmst);
-
-  const longitude = satellite.degreesLong(positionGd.longitude).toFixed(2);
-  const latitude = satellite.degreesLat(positionGd.latitude).toFixed(2);
-  const altitude = positionGd.height.toFixed(2); // Altitude remains in meters
-
-  return { latitude, longitude, altitude };
-}
-
-// Function to display the satellite data on the page
 function displaySatelliteData(satellites) {
   const list = document.getElementById("satellite-list");
-
+  list.innerHTML = "";
   satellites.forEach(satellite => {
-    const position = getSatellitePosition(satellite.tle1, satellite.tle2);
-
     const li = document.createElement("li");
-    li.classList.add("satellite-item");
-
+    li.className = "satellite-item";
     li.innerHTML = `
       <div class="satellite-info">
         <h3>${satellite.name}</h3>
         <p><strong>TLE 1:</strong> ${satellite.tle1}</p>
         <p><strong>TLE 2:</strong> ${satellite.tle2}</p>
       </div>
-      <div class="satellite-position">
-        ${position ? `
-          <p><strong>Latitude:</strong> ${position.latitude}°</p>
-          <p><strong>Longitude:</strong> ${position.longitude}°</p>
-          <p><strong>Altitude:</strong> ${position.altitude} m</p>
-        ` : `
-          <p>Position unavailable.</p>
-        `}
-      </div>
     `;
-
     list.appendChild(li);
   });
 }
 
-// Initialize the fetching of satellite data
+// Three.js visualization
+function initThreeJS(satellites) {
+  const container = document.getElementById("globe-container");
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  // Scene setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(width, height);
+  container.appendChild(renderer.domElement);
+
+  // Add Earth
+  const geometry = new THREE.SphereGeometry(5, 32, 32);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x0077ff,
+    wireframe: false,
+  });
+  const earth = new THREE.Mesh(geometry, material);
+  scene.add(earth);
+
+  // Lighting
+  const light = new THREE.PointLight(0xffffff, 1, 100);
+  light.position.set(10, 10, 10);
+  scene.add(light);
+
+  // Add satellites
+  satellites.forEach((sat, index) => {
+    const satelliteMarker = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xff0000 })
+    );
+
+    // Example: Random positions for now
+    const angle = (index / satellites.length) * Math.PI * 2;
+    satelliteMarker.position.set(
+      7 * Math.cos(angle),
+      7 * Math.sin(angle),
+      0
+    );
+
+    scene.add(satelliteMarker);
+  });
+
+  // Camera position
+  camera.position.z = 15;
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    earth.rotation.y += 0.001; // Rotate the Earth
+    renderer.render(scene, camera);
+  }
+
+  animate();
+}
+
 fetchSatelliteData();
