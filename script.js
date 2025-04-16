@@ -1,4 +1,4 @@
-// Import satellite.js library
+// Import satellite.js library dynamically
 async function loadSatelliteJs() {
   if (!window.satellite) {
     const script = document.createElement('script');
@@ -8,6 +8,7 @@ async function loadSatelliteJs() {
   }
 }
 
+// Fetch and process TLE data
 async function fetchSatelliteData() {
   const output = document.getElementById('output');
   output.textContent = 'Fetching data...';
@@ -15,22 +16,21 @@ async function fetchSatelliteData() {
   try {
     await loadSatelliteJs();
 
-    // Fetch TLE data
+    // Fetch TLE data from CelesTrak
     const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
     const tleData = await response.text();
 
-    // Parse TLE data into satellite objects
+    // Parse TLE data into objects
     const satellites = parseTLEData(tleData);
-    console.log("Parsed Satellites:", satellites);
 
-    // Get positions
+    // Calculate satellite positions
     const now = new Date();
     const positions = satellites.map((sat) => {
       const position = calculatePosition(sat, now);
-      console.log(`Satellite: ${sat.name}`, position);
       return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
     });
 
+    // Display results
     output.textContent = positions.join('\n');
   } catch (error) {
     output.textContent = `Error fetching or processing data: ${error.message}`;
@@ -38,6 +38,7 @@ async function fetchSatelliteData() {
   }
 }
 
+// Parse TLE data
 function parseTLEData(tleText) {
   const lines = tleText.split('\n').filter((line) => line.trim());
   const satellites = [];
@@ -53,6 +54,7 @@ function parseTLEData(tleText) {
   return satellites;
 }
 
+// Calculate satellite position
 function calculatePosition(satelliteData, date) {
   const satrec = satellite.twoline2satrec(satelliteData.tle1, satelliteData.tle2);
   const positionAndVelocity = satellite.propagate(satrec, date);
@@ -71,5 +73,5 @@ function calculatePosition(satelliteData, date) {
   };
 }
 
-// Set up automatic updates
-setInterval(fetchSatelliteData, 500);
+// Initial data fetch
+fetchSatelliteData();
