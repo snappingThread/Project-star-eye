@@ -1,3 +1,4 @@
+// Fetch data from Celestrak's satellite data URL
 const url = "https://www.celestrak.com/NORAD/elements/stations.txt";
 
 // Function to fetch and display satellite data
@@ -7,6 +8,7 @@ async function fetchSatelliteData() {
     const data = await response.text();
 
     const satellites = parseTLEData(data);
+
     displaySatelliteData(satellites);
   } catch (error) {
     console.error("Error fetching data: ", error);
@@ -23,34 +25,36 @@ function parseTLEData(data) {
     const tle1 = lines[i + 1];
     const tle2 = lines[i + 2];
     
-    satellites.push({ name, tle1, tle2 });
+    satellites.push({
+      name,
+      tle1,
+      tle2
+    });
   }
 
   return satellites;
 }
 
-// Function to calculate satellite position
+// Function to calculate position from TLE data
 function getSatellitePosition(tle1, tle2) {
   const satrec = satellite.twoline2satrec(tle1, tle2);
   const now = new Date();
 
   const positionAndVelocity = satellite.propagate(satrec, now);
-  if (!positionAndVelocity.position) {
-    return { lat: "N/A", lon: "N/A", alt: "N/A" };
-  }
+  if (positionAndVelocity.position === false) return null;
 
   const positionEci = positionAndVelocity.position;
   const gmst = satellite.gstime(now);
-  const positionGeodetic = satellite.eciToGeodetic(positionEci, gmst);
+  const positionGd = satellite.eciToGeodetic(positionEci, gmst);
 
-  const lat = positionGeodetic.latitude * (180 / Math.PI);
-  const lon = positionGeodetic.longitude * (180 / Math.PI);
-  const alt = positionGeodetic.height / 1000;
+  const longitude = satellite.degreesLong(positionGd.longitude).toFixed(2);
+  const latitude = satellite.degreesLat(positionGd.latitude).toFixed(2);
+  const altitude = positionGd.height.toFixed(2); // Altitude remains in meters
 
-  return { lat: lat.toFixed(2), lon: lon.toFixed(2), alt: alt.toFixed(2) };
+  return { latitude, longitude, altitude };
 }
 
-// Function to display satellite data
+// Function to display the satellite data on the page
 function displaySatelliteData(satellites) {
   const list = document.getElementById("satellite-list");
 
@@ -67,10 +71,13 @@ function displaySatelliteData(satellites) {
         <p><strong>TLE 2:</strong> ${satellite.tle2}</p>
       </div>
       <div class="satellite-position">
-        <h4>Position:</h4>
-        <p><strong>Latitude:</strong> ${position.lat}°</p>
-        <p><strong>Longitude:</strong> ${position.lon}°</p>
-        <p><strong>Altitude:</strong> ${position.alt} km</p>
+        ${position ? `
+          <p><strong>Latitude:</strong> ${position.latitude}°</p>
+          <p><strong>Longitude:</strong> ${position.longitude}°</p>
+          <p><strong>Altitude:</strong> ${position.altitude} m</p>
+        ` : `
+          <p>Position unavailable.</p>
+        `}
       </div>
     `;
 
@@ -78,5 +85,5 @@ function displaySatelliteData(satellites) {
   });
 }
 
-// Initialize fetching of satellite data
+// Initialize the fetching of satellite data
 fetchSatelliteData();
