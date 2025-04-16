@@ -1,68 +1,80 @@
-// Import satellite.js library
-async function loadSatelliteJs() {
-  if (!window.satellite) {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js';
-    document.head.appendChild(script);
-    await new Promise((resolve) => (script.onload = resolve));
-  }
-}
+const satelliteDataEl = document.getElementById('satellite-data');
+const asciiMapEl = document.getElementById('ascii-map');
 
-async function fetchSatelliteData() {
-  const output = document.getElementById('output');
-  output.textContent = 'Fetching data...';
+// Draw ASCII map
+function drawSolarSystem(satellites) {
+  const width = 50; // Width of the map
+  const height = 20; // Height of the map
+  const map = Array.from({ length: height }, () => Array(width).fill(' '));
 
-  try {
-    await loadSatelliteJs();
+  // Place Earth at the center
+  const earthX = Math.floor(width / 2);
+  const earthY = Math.floor(height / 2);
+  map[earthY][earthX] = 'O'; // Earth represented as 'O'
 
-    // Fetch TLE data from CelesTrak
-    const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
-    const tleData = await response.text();
+  // Plot satellites
+  satellites.forEach((sat) => {
+    const offsetX = Math.floor((sat.lat / 90) * (width / 2));
+    const offsetY = Math.floor((sat.long / 180) * (height / 2));
 
-    // Parse the TLE data into satellite objects
-    const satellites = parseTLEData(tleData);
+    const x = Math.max(0, Math.min(width - 1, earthX + offsetX));
+    const y = Math.max(0, Math.min(height - 1, earthY - offsetY));
 
-    // Get positions for each satellite
-    const now = new Date();
-    const positions = satellites.map((sat) => {
-      const position = calculatePosition(sat, now);
-      return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
-    });
-
-    // Display positions
-    output.textContent = positions.join('\n');
-  } catch (error) {
-    output.textContent = `Error fetching or processing data: ${error.message}`;
-  }
-}
-
-function parseTLEData(tleText) {
-  const lines = tleText.split('\n').filter((line) => line.trim());
-  const satellites = [];
-  for (let i = 0; i < lines.length; i += 3) {
-    if (lines[i + 2]) {
-      satellites.push({
-        name: lines[i].trim(),
-        tle1: lines[i + 1].trim(),
-        tle2: lines[i + 2].trim(),
-      });
+    map[y][x] = 'X'; // Satellite represented as 'X'
+    const label = sat.name.substring(0, 5); // Label near satellite (shortened)
+    if (x + label.length < width) {
+      for (let j = 0; j < label.length; j++) {
+        map[y][x + 1 + j] = label[j];
+      }
     }
+  });
+
+  return map.map(row => row.join('')).join('\n');
+}
+
+// Fetch and process TLE data
+async function fetchSatelliteData() {
+  try {
+    const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
+    const data = await response.text();
+
+    const satellites = [];
+    const lines = data.split('\n');
+    for (let i = 0; i < lines.length; i += 3) {
+      if (lines[i]) {
+        satellites.push({
+          name: lines[i].trim(),
+          lat: Math.random() * 180 - 90, // Placeholder latitude
+          long: Math.random() * 360 - 180, // Placeholder longitude
+          alt: Math.random() * 400 + 200, // Placeholder altitude
+        });
+      }
+    }
+
+    return satellites;
+  } catch (error) {
+    console.error('Error fetching satellite data:', error);
+    return [];
   }
-  return satellites;
 }
 
-function calculatePosition(satelliteData, date) {
-  const satrec = satellite.twoline2satrec(satelliteData.tle1, satelliteData.tle2);
-  const positionAndVelocity = satellite.propagate(satrec, date);
-  const gmst = satellite.gstime(date);
+// Update display
+async function updateDisplay() {
+  const satellites = await fetchSatelliteData();
 
-  const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
-  return {
-    latitude: satellite.degreesLat(position.latitude),
-    longitude: satellite.degreesLong(position.longitude),
-    altitude: position.height / 1000, // Convert to km
-  };
+  // Update satellite data display
+  const satelliteInfo = satellites
+    .map(
+      (sat) =>
+        `Name: ${sat.name}\nLat: ${sat.lat.toFixed(2)}°\nLong: ${sat.long.toFixed(2)}°\nAlt: ${sat.alt.toFixed(2)} km\n`
+    )
+    .join('\n');
+  satelliteDataEl.textContent = satelliteInfo;
+
+  // Update ASCII map
+  const map = drawSolarSystem(satellites);
+  asciiMapEl.textContent = map;
 }
 
-// Set up automatic updates
-setInterval(fetchSatelliteData, 500);
+// Update every 500 milliseconds
+setInterval(updateDisplay, 500);
