@@ -1,3 +1,4 @@
+console.log("Script loaded"); // Add this line at the very top of script.js
 document.addEventListener('DOMContentLoaded', async () => {
   const output = document.getElementById('output');
   const fetchDataButton = document.getElementById('fetch-data');
