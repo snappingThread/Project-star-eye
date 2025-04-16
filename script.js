@@ -12,15 +12,19 @@ document.getElementById('fetch-data').addEventListener('click', async () => {
     // Parse the TLE data
     const satellites = parseTLEData(data);
 
-    // Generate current positions for the satellites
-    const positions = satellites.map((satelliteData) => {
-      const { name, tle1, tle2 } = satelliteData;
-      const position = getSatellitePosition(tle1, tle2);
-      return `${name}: Lat: ${position.latitude.toFixed(2)}°, Lon: ${position.longitude.toFixed(2)}°, Alt: ${position.altitude.toFixed(2)} km`;
-    });
+    // Set an interval to update the data every second
+    setInterval(() => {
+      // Generate current positions for the satellites
+      const positions = satellites.map((satelliteData) => {
+        const { name, tle1, tle2 } = satelliteData;
+        const position = getSatellitePosition(tle1, tle2);
+        return `${name}: Lat: ${position.latitude.toFixed(2)}°, Lon: ${position.longitude.toFixed(2)}°, Alt: ${position.altitude.toFixed(2)} km`;
+      });
 
-    // Display parsed and calculated data
-    output.textContent = positions.join('\n');
+      // Display parsed and calculated data
+      output.textContent = positions.join('\n');
+    }, 1000); // Update every 1000 milliseconds (1 second)
+
   } catch (error) {
     output.textContent = `Error fetching data: ${error.message}`;
   }
