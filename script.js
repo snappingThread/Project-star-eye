@@ -1,7 +1,3 @@
-// Include the satellite.js library by adding this script to your HTML:
-// <script src="https://cdn.jsdelivr.net/npm/satellite.js@2.0.0/dist/satellite.min.js"></script>
-
-// Fetch data from Celestrak's satellite data URL
 const url = "https://www.celestrak.com/NORAD/elements/stations.txt";
 
 // Function to fetch and display satellite data
@@ -11,7 +7,6 @@ async function fetchSatelliteData() {
     const data = await response.text();
 
     const satellites = parseTLEData(data);
-
     displaySatelliteData(satellites);
   } catch (error) {
     console.error("Error fetching data: ", error);
@@ -28,52 +23,42 @@ function parseTLEData(data) {
     const tle1 = lines[i + 1];
     const tle2 = lines[i + 2];
     
-    satellites.push({
-      name,
-      tle1,
-      tle2
-    });
+    satellites.push({ name, tle1, tle2 });
   }
 
   return satellites;
 }
 
-// Function to calculate the satellite's position using satellite.js
+// Function to calculate satellite position
 function getSatellitePosition(tle1, tle2) {
   const satrec = satellite.twoline2satrec(tle1, tle2);
-  
-  // Get current time
   const now = new Date();
-  
-  // Propagate the satellite position
-  const positionAndVelocity = satellite.propagate(satrec, now);
 
+  const positionAndVelocity = satellite.propagate(satrec, now);
   if (!positionAndVelocity.position) {
-    return { lat: "N/A", lon: "N/A", alt: "N/A" }; // Handle error in propagation
+    return { lat: "N/A", lon: "N/A", alt: "N/A" };
   }
 
   const positionEci = positionAndVelocity.position;
   const gmst = satellite.gstime(now);
   const positionGeodetic = satellite.eciToGeodetic(positionEci, gmst);
 
-  // Convert radians to degrees for lat and lon
   const lat = positionGeodetic.latitude * (180 / Math.PI);
   const lon = positionGeodetic.longitude * (180 / Math.PI);
-  const alt = positionGeodetic.height / 1000; // Convert to kilometers
+  const alt = positionGeodetic.height / 1000;
 
   return { lat: lat.toFixed(2), lon: lon.toFixed(2), alt: alt.toFixed(2) };
 }
 
-// Function to display the satellite data on the page
+// Function to display satellite data
 function displaySatelliteData(satellites) {
   const list = document.getElementById("satellite-list");
 
   satellites.forEach(satellite => {
+    const position = getSatellitePosition(satellite.tle1, satellite.tle2);
+
     const li = document.createElement("li");
     li.classList.add("satellite-item");
-
-    // Calculate satellite position
-    const position = getSatellitePosition(satellite.tle1, satellite.tle2);
 
     li.innerHTML = `
       <div class="satellite-info">
@@ -82,7 +67,7 @@ function displaySatelliteData(satellites) {
         <p><strong>TLE 2:</strong> ${satellite.tle2}</p>
       </div>
       <div class="satellite-position">
-        <h4>Calculated Position</h4>
+        <h4>Position:</h4>
         <p><strong>Latitude:</strong> ${position.lat}°</p>
         <p><strong>Longitude:</strong> ${position.lon}°</p>
         <p><strong>Altitude:</strong> ${position.alt} km</p>
@@ -93,5 +78,5 @@ function displaySatelliteData(satellites) {
   });
 }
 
-// Initialize the fetching of satellite data
+// Initialize fetching of satellite data
 fetchSatelliteData();
