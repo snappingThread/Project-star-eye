@@ -4,29 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Star-Eye</title>
-  <script src="script.js" type="module" defer></script>
+  <script type="module" src="script.js" defer></script>
   <style>
-    pre {
+    body {
       font-family: monospace;
-      line-height: 1.2;
-      background: black;
-      color: white;
+      white-space: pre;
+    }
+    #satellite-data {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(255, 255, 255, 0.8);
       padding: 10px;
-      margin: 10px 0;
+      border: 1px solid #ccc;
+      max-width: 300px;
     }
-    .container {
-      display: flex;
-    }
-    .data, .map {
-      margin-right: 20px;
+    #ascii-map {
+      margin-top: 150px;
     }
   </style>
 </head>
 <body>
-  <h1>Star-Eye: Near-Earth Satellites</h1>
-  <div class="container">
-    <pre class="data" id="satellite-data"></pre>
-    <pre class="map" id="ascii-map"></pre>
-  </div>
+  <div id="satellite-data">Loading satellite data...</div>
+  <pre id="ascii-map"></pre>
 </body>
 </html>
