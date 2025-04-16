@@ -61,3 +61,4 @@ function getSatellitePosition(tle1, tle2) {
 
   return { latitude, longitude, altitude };
 }
+
