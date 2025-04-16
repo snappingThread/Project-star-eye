@@ -1,4 +1,4 @@
-// Import satellite.js library dynamically
+// Import satellite.js library
 async function loadSatelliteJs() {
   if (!window.satellite) {
     const script = document.createElement('script');
@@ -8,7 +8,6 @@ async function loadSatelliteJs() {
   }
 }
 
-// Fetch and process TLE data
 async function fetchSatelliteData() {
   const output = document.getElementById('output');
   output.textContent = 'Fetching data...';
@@ -20,25 +19,30 @@ async function fetchSatelliteData() {
     const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
     const tleData = await response.text();
 
-    // Parse TLE data into objects
+    // Parse the TLE data into satellite objects
     const satellites = parseTLEData(tleData);
+    console.log('Parsed Satellites:', satellites);
 
-    // Calculate satellite positions
+    // Get positions for each satellite
     const now = new Date();
     const positions = satellites.map((sat) => {
-      const position = calculatePosition(sat, now);
-      return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
+      try {
+        const position = calculatePosition(sat, now);
+        console.log(`Satellite: ${sat.name}`, position);
+        return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
+      } catch (error) {
+        console.error(`Error processing satellite: ${sat.name}`, error);
+        return `${sat.name}: Error calculating position.`;
+      }
     });
 
-    // Display results
+    // Display positions
     output.textContent = positions.join('\n');
   } catch (error) {
     output.textContent = `Error fetching or processing data: ${error.message}`;
-    console.error(error);
   }
 }
 
-// Parse TLE data
 function parseTLEData(tleText) {
   const lines = tleText.split('\n').filter((line) => line.trim());
   const satellites = [];
@@ -54,24 +58,27 @@ function parseTLEData(tleText) {
   return satellites;
 }
 
-// Calculate satellite position
 function calculatePosition(satelliteData, date) {
   const satrec = satellite.twoline2satrec(satelliteData.tle1, satelliteData.tle2);
   const positionAndVelocity = satellite.propagate(satrec, date);
-  const gmst = satellite.gstime(date);
 
   if (!positionAndVelocity.position) {
-    console.warn(`Unable to propagate ${satelliteData.name}`);
-    return { latitude: 0, longitude: 0, altitude: 0 }; // Default invalid data
+    throw new Error('Invalid position data.');
   }
 
+  const gmst = satellite.gstime(date);
   const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+
   return {
     latitude: satellite.degreesLat(position.latitude),
     longitude: satellite.degreesLong(position.longitude),
-    altitude: position.height / 1000, // Convert to km
+    altitude: position.height / 1000, // Convert meters to kilometers
   };
 }
 
-// Initial data fetch
-fetchSatelliteData();
+// Set up automatic updates
+function updateDisplay() {
+  fetchSatelliteData();
+}
+setInterval(updateDisplay, 500);
+updateDisplay(); // Initial call to populate data immediately
