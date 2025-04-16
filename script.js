@@ -8,16 +8,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Fetch data when the button is clicked
+  // Fetch and parse TLE data when the button is clicked
   fetchDataButton.addEventListener('click', async () => {
     output.textContent = 'Fetching data...';
     await fetchSatelliteData();
   });
 
-  // Automatically update satellite data every 500ms
+  // Automatically recalculate satellite data every 500ms
   setInterval(async () => {
-    output.textContent = 'Fetching data...';
-    await fetchSatelliteData();
+    output.textContent = 'Recalculating satellite positions...'; // Optional: Show recalculation message
+    await updateSatellitePositions(); // Recalculate the positions every 500ms
   }, 500); // 500 milliseconds interval
 });
 
@@ -31,7 +31,10 @@ async function loadSatelliteJs() {
   }
 }
 
-// Fetch and process the satellite data
+// Declare satellites array globally
+let satellites = [];
+
+// Fetch and parse the TLE data, then calculate positions
 async function fetchSatelliteData() {
   const output = document.getElementById('output');
   try {
@@ -42,17 +45,10 @@ async function fetchSatelliteData() {
     const tleData = await response.text();
 
     // Parse the TLE data into satellite objects
-    const satellites = parseTLEData(tleData);
+    satellites = parseTLEData(tleData);
 
-    // Get positions for each satellite
-    const now = new Date();
-    const positions = satellites.map((sat) => {
-      const position = calculatePosition(sat, now);
-      return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
-    });
-
-    // Display positions
-    output.textContent = positions.join('\n');
+    // Initially calculate and display positions
+    await updateSatellitePositions();
   } catch (error) {
     output.textContent = `Error fetching or processing data: ${error.message}`;
   }
@@ -61,20 +57,33 @@ async function fetchSatelliteData() {
 // Parse TLE data into an array of satellite objects
 function parseTLEData(tleText) {
   const lines = tleText.split('\n').filter((line) => line.trim());
-  const satellites = [];
+  const parsedSatellites = [];
   for (let i = 0; i < lines.length; i += 3) {
     if (lines[i] && lines[i + 1] && lines[i + 2]) {
-      satellites.push({
+      parsedSatellites.push({
         name: lines[i].trim(),
         tle1: lines[i + 1].trim(),
         tle2: lines[i + 2].trim(),
       });
     }
   }
-  return satellites;
+  return parsedSatellites;
 }
 
-// Calculate the position of a satellite
+// Calculate and update satellite positions based on the current time
+async function updateSatellitePositions() {
+  const output = document.getElementById('output');
+  const now = new Date();
+  const positions = satellites.map((sat) => {
+    const position = calculatePosition(sat, now);
+    return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
+  });
+
+  // Display updated positions
+  output.textContent = positions.join('\n');
+}
+
+// Calculate the position of a satellite at a given time
 function calculatePosition(satelliteData, date) {
   const satrec = satellite.twoline2satrec(satelliteData.tle1, satelliteData.tle2);
   const positionAndVelocity = satellite.propagate(satrec, date);
