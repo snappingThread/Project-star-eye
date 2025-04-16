@@ -23,7 +23,7 @@ document.getElementById('fetch-data').addEventListener('click', async () => {
 
       // Display parsed and calculated data
       output.textContent = positions.join('\n');
-    }, 1000); // Update every 1000 milliseconds (1 second)
+    }, 500); // Update every 500 milliseconds (0.5 second)
 
   } catch (error) {
     output.textContent = `Error fetching data: ${error.message}`;
