@@ -1,4 +1,4 @@
-// Import satellite.js library
+// Load satellite.js library
 async function loadSatelliteJs() {
   if (!window.satellite) {
     const script = document.createElement('script');
@@ -8,41 +8,38 @@ async function loadSatelliteJs() {
   }
 }
 
+// Fetch satellite data from CelesTrak and update positions
 async function fetchSatelliteData() {
   const output = document.getElementById('output');
-  output.textContent = 'Fetching data...';
-
   try {
     await loadSatelliteJs();
 
-    // Fetch TLE data from CelesTrak
+    // Fetch TLE data
     const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
     const tleData = await response.text();
+    console.log('Raw TLE Data:', tleData);
 
-    // Parse the TLE data into satellite objects
+    // Parse TLE data
     const satellites = parseTLEData(tleData);
     console.log('Parsed Satellites:', satellites);
 
-    // Get positions for each satellite
+    // Calculate positions
     const now = new Date();
     const positions = satellites.map((sat) => {
-      try {
-        const position = calculatePosition(sat, now);
-        console.log(`Satellite: ${sat.name}`, position);
-        return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
-      } catch (error) {
-        console.error(`Error processing satellite: ${sat.name}`, error);
-        return `${sat.name}: Error calculating position.`;
-      }
+      console.log('Calculating position for:', sat.name);
+      const position = calculatePosition(sat, now);
+      return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
     });
 
-    // Display positions
+    // Display results
     output.textContent = positions.join('\n');
   } catch (error) {
-    output.textContent = `Error fetching or processing data: ${error.message}`;
+    console.error('Error fetching or processing data:', error);
+    output.textContent = `Error: ${error.message}`;
   }
 }
 
+// Parse TLE data into satellite objects
 function parseTLEData(tleText) {
   const lines = tleText.split('\n').filter((line) => line.trim());
   const satellites = [];
@@ -58,12 +55,14 @@ function parseTLEData(tleText) {
   return satellites;
 }
 
+// Calculate satellite position
 function calculatePosition(satelliteData, date) {
   const satrec = satellite.twoline2satrec(satelliteData.tle1, satelliteData.tle2);
   const positionAndVelocity = satellite.propagate(satrec, date);
 
   if (!positionAndVelocity.position) {
-    throw new Error('Invalid position data.');
+    console.warn('Propagation failed for:', satelliteData.name);
+    return { latitude: 0, longitude: 0, altitude: 0 };
   }
 
   const gmst = satellite.gstime(date);
@@ -72,13 +71,9 @@ function calculatePosition(satelliteData, date) {
   return {
     latitude: satellite.degreesLat(position.latitude),
     longitude: satellite.degreesLong(position.longitude),
-    altitude: position.height / 1000, // Convert meters to kilometers
+    altitude: position.height / 1000, // Convert to km
   };
 }
 
-// Set up automatic updates
-function updateDisplay() {
-  fetchSatelliteData();
-}
-setInterval(updateDisplay, 500);
-updateDisplay(); // Initial call to populate data immediately
+// Update positions every 500ms
+setInterval(fetchSatelliteData, 500);
