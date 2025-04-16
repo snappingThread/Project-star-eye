@@ -1,68 +1,80 @@
-document.getElementById('fetch-data').addEventListener('click', async () => {
-  const output = document.getElementById('satellite-data');
-  output.textContent = 'Fetching data...';
+const satelliteDataEl = document.getElementById('satellite-data');
+const asciiMapEl = document.getElementById('ascii-map');
 
+// Draw ASCII map
+function drawSolarSystem(satellites) {
+  const width = 50; // Width of the map
+  const height = 20; // Height of the map
+  const map = Array.from({ length: height }, () => Array(width).fill(' '));
+
+  // Place Earth at the center
+  const earthX = Math.floor(width / 2);
+  const earthY = Math.floor(height / 2);
+  map[earthY][earthX] = 'O'; // Earth represented as 'O'
+
+  // Plot satellites
+  satellites.forEach((sat) => {
+    const offsetX = Math.floor((sat.lat / 90) * (width / 2));
+    const offsetY = Math.floor((sat.long / 180) * (height / 2));
+
+    const x = Math.max(0, Math.min(width - 1, earthX + offsetX));
+    const y = Math.max(0, Math.min(height - 1, earthY - offsetY));
+
+    map[y][x] = 'X'; // Satellite represented as 'X'
+    const label = sat.name.substring(0, 5); // Label near satellite (shortened)
+    if (x + label.length < width) {
+      for (let j = 0; j < label.length; j++) {
+        map[y][x + 1 + j] = label[j];
+      }
+    }
+  });
+
+  return map.map(row => row.join('')).join('\n');
+}
+
+// Fetch and process TLE data
+async function fetchSatelliteData() {
   try {
-    // Fetch TLE data from CelesTrak
     const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
     const data = await response.text();
 
-    // Parse the TLE data
-    const satellites = parseTLEData(data);
-    
-    // For each satellite, get its position and display the information
-    const positions = await Promise.all(satellites.map(async (satellite) => {
-      const position = await getSatellitePosition(satellite);
-      return { name: satellite.name, ...position };
-    }));
-
-    // Display the satellite data
-    output.textContent = positions.map(position => 
-      `${position.name}: Lat: ${position.lat}, Long: ${position.lon}, Alt: ${position.alt}`
-    ).join('\n');
-
-  } catch (error) {
-    output.textContent = `Error fetching data: ${error.message}`;
-  }
-});
-
-function parseTLEData(tleData) {
-  const lines = tleData.split('\n');
-  const satellites = [];
-  
-  for (let i = 0; i < lines.length; i += 3) {
-    const name = lines[i].trim();
-    const line1 = lines[i + 1].trim();
-    const line2 = lines[i + 2].trim();
-
-    if (name && line1 && line2) {
-      satellites.push({ name, line1, line2 });
-    }
-  }
-
-  return satellites;
-}
-
-async function getSatellitePosition(satellite) {
-  try {
-    const satrec = satellite.twoline2satrec(satellite.line1, satellite.line2);
-    const currentTime = new Date();
-
-    // Get satellite position at the current time
-    const positionAndVelocity = satellite.propagate(satrec, currentTime);
-    
-    if (positionAndVelocity.error) {
-      return { lat: 'N/A', lon: 'N/A', alt: 'N/A' };
+    const satellites = [];
+    const lines = data.split('\n');
+    for (let i = 0; i < lines.length; i += 3) {
+      if (lines[i]) {
+        satellites.push({
+          name: lines[i].trim(),
+          lat: Math.random() * 180 - 90, // Placeholder latitude
+          long: Math.random() * 360 - 180, // Placeholder longitude
+          alt: Math.random() * 400 + 200, // Placeholder altitude
+        });
+      }
     }
 
-    // Convert the ECI position to latitude, longitude, and altitude
-    const { latitude, longitude, altitude } = satellite.eciToGeodetic(positionAndVelocity.position, currentTime);
-    
-    return { lat: latitude.toFixed(6), lon: longitude.toFixed(6), alt: altitude.toFixed(2) };
-
+    return satellites;
   } catch (error) {
-    console.error('Error getting satellite position:', error);
-    return { lat: 'Error', lon: 'Error', alt: 'Error' };
+    console.error('Error fetching satellite data:', error);
+    return [];
   }
 }
 
+// Update display
+async function updateDisplay() {
+  const satellites = await fetchSatelliteData();
+
+  // Update satellite data display
+  const satelliteInfo = satellites
+    .map(
+      (sat) =>
+        `Name: ${sat.name}\nLat: ${sat.lat.toFixed(2)}°\nLong: ${sat.long.toFixed(2)}°\nAlt: ${sat.alt.toFixed(2)} km\n`
+    )
+    .join('\n');
+  satelliteDataEl.textContent = satelliteInfo;
+
+  // Update ASCII map
+  const map = drawSolarSystem(satellites);
+  asciiMapEl.textContent = map;
+}
+
+// Update every 500 milliseconds
+setInterval(updateDisplay, 500);
