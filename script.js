@@ -46,8 +46,8 @@ function displaySatelliteData(satellites) {
 // Three.js visualization
 function initThreeJS(satellites) {
   const container = document.getElementById("globe-container");
-  const width = container.clientWidth;
-  const height = container.clientHeight;
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 400;
 
   // Scene setup
   const scene = new THREE.Scene();
