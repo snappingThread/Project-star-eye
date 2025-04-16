@@ -5,29 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Satellite Data</title>
   <style>
-    .satellite-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  background-color: #fff;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.satellite-info {
-  flex: 1;
-}
-
-.satellite-position {
-  flex: 1;
-  margin-left: 20px;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-}
-
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -48,11 +25,24 @@
       padding: 0;
     }
     .satellite-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       background-color: #fff;
       margin-bottom: 1rem;
       padding: 1rem;
       border-radius: 5px;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .satellite-info {
+      flex: 1;
+    }
+    .satellite-position {
+      flex: 1;
+      margin-left: 20px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
     }
   </style>
 </head>
@@ -66,7 +56,6 @@
       <!-- Satellite data will be dynamically injected here -->
     </ul>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
