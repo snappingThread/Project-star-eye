@@ -3,53 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Star-Eye: Near-Earth Satellites</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    #satellite-data {
-      margin-top: 20px;
-      font-size: 14px;
-      white-space: pre-wrap;
-    }
-    #ascii-map {
-      margin-top: 20px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      text-align: left;
-      display: inline-block;
-      background-color: black;
-      color: white;
-      padding: 10px;
-      margin-top: 20px;
-      width: 80%;
-    }
-  </style>
-  <!-- Add type="module" to the script tag -->
-  <script src="script.js" type="module" defer></script>
+  <title>Star-Eye: Satellite Tracker</title>
+  <!-- Include the satellite.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/satellite.js@2.0.0/dist/satellite.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <h1>Star-Eye: Near-Earth Satellites</h1>
-  
-  <!-- Button to trigger satellite data fetching -->
-  <button id="fetch-data">Get Satellite Data</button>
-
-  <!-- Div to display fetched data -->
-  <div id="satellite-data">Loading satellite data...</div>
-
-  <!-- Div to display ASCII map of the solar system -->
-  <div id="ascii-map">ASCII Map Placeholder</div>
+  <h1>Star-Eye: Satellite Tracker</h1>
+  <button id="fetch-data">Fetch Satellite Data</button>
+  <pre id="satellite-data"></pre>
 </body>
 </html>
