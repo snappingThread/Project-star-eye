@@ -102,3 +102,4 @@ function initThreeJS(satellites) {
 }
 
 fetchSatelliteData();
+
