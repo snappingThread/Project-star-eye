@@ -65,3 +65,4 @@ async function getSatellitePosition(satellite) {
     return { lat: 'Error', lon: 'Error', alt: 'Error' };
   }
 }
+
