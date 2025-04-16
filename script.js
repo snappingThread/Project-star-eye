@@ -1,4 +1,3 @@
-// Wait for DOM content to be fully loaded before running the script
 document.addEventListener('DOMContentLoaded', async () => {
   const output = document.getElementById('output');
   const fetchDataButton = document.getElementById('fetch-data');
@@ -9,32 +8,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // Fetch data when the button is clicked
   fetchDataButton.addEventListener('click', async () => {
     output.textContent = 'Fetching data...';
-
-    try {
-      await loadSatelliteJs();
-
-      // Fetch TLE data from CelesTrak
-      const response = await fetch('https://celestrak.com/NORAD/elements/stations.txt');
-      const tleData = await response.text();
-
-      // Parse the TLE data into satellite objects
-      const satellites = parseTLEData(tleData);
-
-      // Get positions for each satellite
-      const now = new Date();
-      const positions = satellites.map((sat) => {
-        const position = calculatePosition(sat, now);
-        return `${sat.name}: Lat: ${position.latitude.toFixed(2)}, Lon: ${position.longitude.toFixed(2)}, Alt: ${position.altitude.toFixed(2)} km`;
-      });
-
-      // Display positions
-      output.textContent = positions.join('\n');
-    } catch (error) {
-      output.textContent = `Error fetching or processing data: ${error.message}`;
-    }
+    await fetchSatelliteData();
   });
+
+  // Automatically update satellite data every 500ms
+  setInterval(async () => {
+    output.textContent = 'Fetching data...';
+    await fetchSatelliteData();
+  }, 500); // 500 milliseconds interval
 });
 
 // Load satellite.js
@@ -50,8 +34,6 @@ async function loadSatelliteJs() {
 // Fetch and process the satellite data
 async function fetchSatelliteData() {
   const output = document.getElementById('output');
-  output.textContent = 'Fetching data...';
-
   try {
     await loadSatelliteJs();
 
